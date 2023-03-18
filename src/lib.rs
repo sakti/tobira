@@ -1,6 +1,8 @@
 use std::io::Result;
+use std::str::FromStr;
 use std::{fs::read_dir, path::Path};
 
+use highlight::Language;
 use humansize::{format_size, BINARY};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -50,8 +52,11 @@ fn get_directory_size(path: String) -> PyResult<String> {
 }
 
 #[pyfunction]
-fn code_highlight(code: String) -> PyResult<String> {
-    match highlight::code_highlight(code) {
+fn code_highlight(lang: String, code: String) -> PyResult<String> {
+    let Ok(lang) = Language::from_str(&lang) else {
+        return Err(PyValueError::new_err("invalid lang code"));
+    };
+    match highlight::code_highlight(lang, code) {
         Ok(value) => Ok(value),
         Err(e) => Err(PyValueError::new_err(e.to_string())),
     }
